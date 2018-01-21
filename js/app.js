@@ -32,6 +32,10 @@ window.addEventListener('load', function() {
     console.log(password);
 
     firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then(function() {
+        authenticationUser();
+      })  
+    
       .catch(function(error) {
       // Handle Errors here.
         var errorCode = error.code;
@@ -45,39 +49,39 @@ window.addEventListener('load', function() {
   });
 
   btnEnter.addEventListener('click', function() {
-    var btnEnter = document.getElementById('btn-enter');
+    var enterEmail = document.getElementById('enter-email').value;
+    var enterPassword = document.getElementById('enter-password').value;
 
-    btnEnter.addEventListener('click', function() {
-      var enterEmail = document.getElementById('enter-email').value;
-      var enterPassword = document.getElementById('enter-password').value;
-
-      // console.log(enterEmail);
-      // console.log(enterPassword);
+    // console.log(enterEmail);
+    // console.log(enterPassword);
       
-      // Inicia sesión
-      firebase.auth().signInWithEmailAndPassword(enterEmail, enterPassword)
-        .catch(function(error) {
+    // Inicia sesión
+    firebase.auth().signInWithEmailAndPassword(enterEmail, enterPassword)
+      .catch(function(error) {
         // Handle Errors here.
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          // ...
-          console.log(errorCode);
-          console.log(errorMessage);
-        });
-    });
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        // ...
+        console.log(errorCode);
+        console.log(errorMessage);
+      });
+    console.log('Accediste');
   });
-
+  
   // Función observador de inicio de sesión
   function watcher() {
     firebase.auth().onAuthStateChanged(function(user) {
+      // El user pasará en elementUser
       if (user) {
-        elementSeen();
+        elementSeen(user);
         // User is signed in.
         var displayName = user.displayName;
         var email = user.email;
-        console.log(email);
-        console.log(user);
-
+        // console.log(email);
+        // console.log(user);
+        console.log('***************');
+        console.log(user.emailVerified);
+        console.log('***************');
         var emailVerified = user.emailVerified;
         var photoURL = user.photoURL;
         var isAnonymous = user.isAnonymous;
@@ -95,25 +99,44 @@ window.addEventListener('load', function() {
   watcher();
 
   // Función de lo que verá el usuario activo 
-  function elementSeen() {
-    var elementSeen = document.getElementById('see');
-    elementSeen.innerHTML = `
-    <p>Bienvenido!</p>
-    <button id="btn-close">Cerrar Sesión</button>
-    `;
-    // elementSeen.innerHTML = '<div class="mt-3">Esto es parte de la sesion del usuario</div>';
-    // elementSeen.innerHTML = 'Solo lo puede ver usuario activo';
-    close();
+  function elementSeen(user) {
+    var user = user;
+    var elementSeen = document.getElementById('content');
+    if (user.emailVerified) {
+      elementSeen.innerHTML = `
+      <p>Bienvenido!</p>
+      <button id="btn-close">Cerrar Sesión</button>
+      `;
+      // elementSeen.innerHTML = '<div class="mt-3">Esto es parte de la sesion del usuario</div>';
+      // elementSeen.innerHTML = 'Solo lo puede ver usuario activo';
+      close();
+    } else {
+      console.log('cuenta no verificada');
+    }
   }
 
   function close() {
     var btnClose = document.getElementById('btn-close');
-    firebase.auth().signOut()
-      .then(function() {
-        console.log('Saliendo ...');
-      })
-      .catch(function(error) {
-        console.log(error);
-      });
+    btnClose.addEventListener('click', function() {
+      firebase.auth().signOut()
+        .then(function() {
+          console.log('Saliendo ...');
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    });
+  }
+
+  function authenticationUser() {
+    var user = firebase.auth().currentUser;
+
+    user.sendEmailVerification().then(function() {
+      // Email sent.
+      console.log('Enviando correo...');
+    }).catch(function(error) {
+      // An error happened.
+      console.log(error);
+    });
   }
 });
